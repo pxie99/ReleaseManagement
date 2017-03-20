@@ -39,6 +39,25 @@ function set_branch_permissions() {
 }
 
 ######################################################
+# Function to clear the branch permissions for the current repository in Github
+#
+# NOTE! Same notes listed above apply
+######################################################
+function clear_branch_permissions() {
+
+  local REPO=`basename $(git rev-parse --show-toplevel)`
+
+  local PERMISSIONS='{ "protection": { "enabled": false } }'
+
+  echo "Clearing branch permissions for $REPO"
+  curl \
+    -H "Authorization: token $GITHUB_OAUTH_TOKEN" \
+    -H "Accept: application/vnd.github.loki-preview" \
+    -XPATCH -d $PERMISSIONS \
+    https://github4-chn.cisco.com/api/v3/repos/Interstellar/$REPO/branches/$branch_name
+}
+
+######################################################
 # Function to create a branch
 ######################################################
 function create() {
@@ -67,6 +86,8 @@ function finish() {
   git push origin master:master
   git push origin develop:develop
 
+  # Clear the branch permissions so we can delete the branch
+  clear_branch_permissions
 }
 
 
