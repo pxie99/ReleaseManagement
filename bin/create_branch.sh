@@ -11,6 +11,8 @@ REPOS=(
  "."
 )
 
+ORGANIZATION="Interstellar"
+
 ######################################################
 # Function to set the Github protections for a particular branch
 #
@@ -30,12 +32,12 @@ function set_branch_permissions() {
   local PERMISSIONS='{ "required_pull_request_reviews": { "include_admins": true }, "required_status_checks": null, "restrictions": null }'
 
   echo "Launch this page to set the full permissions for $REPO:"
-  echo "https://github4-chn.cisco.com/Interstellar/$REPO/settings/branches/$branch_name"
+  echo "https://github4-chn.cisco.com/$organization/$REPO/settings/branches/$branch_name"
   curl \
     -H "Authorization: token $GITHUB_OAUTH_TOKEN" \
     -H "Accept: application/vnd.github.loki-preview" \
     -XPUT -d $PERMISSIONS \
-    https://github4-chn.cisco.com/api/v3/repos/Interstellar/$REPO/branches/$branch_name/protection
+    https://github4-chn.cisco.com/api/v3/repos/$oranization/$REPO/branches/$branch_name/protection
 }
 
 ######################################################
@@ -54,7 +56,7 @@ function clear_branch_permissions() {
     -H "Authorization: token $GITHUB_OAUTH_TOKEN" \
     -H "Accept: application/vnd.github.loki-preview" \
     -XPATCH -d $PERMISSIONS \
-    https://github4-chn.cisco.com/api/v3/repos/Interstellar/$REPO/branches/$branch_name
+    https://github4-chn.cisco.com/api/v3/repos/$organization/$REPO/branches/$branch_name
 }
 
 ######################################################
@@ -152,7 +154,7 @@ OPTIND=1         # Reset in case getopts has been used previously in the shell.
 output_file=""
 verbose=0
 
-while getopts "vt:o:n:f:" opt; do
+while getopts "vt:o:n:f:u:r:" opt; do
 
   case "$opt" in
     v)  verbose=1
@@ -189,6 +191,10 @@ while getopts "vt:o:n:f:" opt; do
       ;;
     n)  branch_name=$OPTARG
       ;;
+    r)  repos+=("$OPTARG")
+      ;;
+    u)  organization=$OPTARG
+      ;;
     f)  release_notes_file=$OPTARG
       ;;
     *)
@@ -203,13 +209,28 @@ shift $((OPTIND-1))
 
 [ "$1" = "--" ] && shift
 
-
+# Redirect output if verbose is specified
 if [[ $verbose -eq 0 ]]; then
   exec 3<>/dev/null
 else
   exec 3>&1
 fi
 
+# Set the repos to the default if they are not specified
+if [ -z $repos ]; then
+  repos=( "${REPOS[@]}" )
+fi
+
+if [ -z $organization ]; then
+  organization=$ORGANIZATION
+fi
+
 echo "verbose=$verbose, type='$branch_type', name: $branch_name, release_notes: $release_notes_file" >&3
 
+for r in ${repos[*]}; do
+  echo $r
+done
+echo $organization
+
+# Process each repository
 foreach_repo $operation
