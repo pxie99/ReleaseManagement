@@ -36,7 +36,7 @@ function set_branch_permissions() {
   curl \
     -H "Authorization: token $GITHUB_OAUTH_TOKEN" \
     -H "Accept: application/vnd.github.loki-preview" \
-    -XPUT -d $PERMISSIONS \
+    -XPUT -d "$PERMISSIONS" \
     https://github4-chn.cisco.com/api/v3/repos/$organization/$REPO/branches/$branch_type%2F$branch_name/protection
 }
 
@@ -56,8 +56,8 @@ function clear_branch_permissions() {
   curl \
     -H "Authorization: token $GITHUB_OAUTH_TOKEN" \
     -H "Accept: application/vnd.github.loki-preview" \
-    -XPATCH -d $PERMISSIONS \
-    https://github4-chn.cisco.com/api/v3/repos/$organization/$REPO/branches/$branch_type%2F$branch_name
+    -XPATCH -d $"PERMISSIONS" \
+    https://github4-chn.cisco.com/api/v3/repos/$organization/$REPO/branches/$branch_type%2F$branch_name >&3
 }
 
 ######################################################
