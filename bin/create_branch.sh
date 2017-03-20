@@ -52,12 +52,12 @@ function clear_branch_permissions() {
   local PERMISSIONS='{ "protection": { "enabled": false } }'
 
   echo "Clearing branch permissions for $REPO"
-  echo "https://github4-chn.cisco.com/api/v3/repos/$organization/$REPO/branches/$branch_type%2F$branch_name"
+  echo "https://github4-chn.cisco.com/$organization/$REPO/branches/$branch_type/$branch_name"
   curl \
     -H "Authorization: token $GITHUB_OAUTH_TOKEN" \
     -H "Accept: application/vnd.github.loki-preview" \
-    -XPATCH -d $"PERMISSIONS" \
-    https://github4-chn.cisco.com/api/v3/repos/$organization/$REPO/branches/$branch_type%2F$branch_name >&3
+    -XPATCH -d "$PERMISSIONS" \
+    https://github4-chn.cisco.com/api/v3/repos/$organization/$REPO/branches/$branch_type%2F$branch_name
 }
 
 ######################################################
@@ -84,13 +84,15 @@ function finish() {
   echo $(pwd) >&3
   echo "Finishing $branch_type/$branch_name and attaching release notes $release_notes_file" >&3
 
-  git flow $branch_type finish $branch_name -f $release_notes_file
-  git push --tags
-  git push origin master:master
-  git push origin develop:develop
-
   # Clear the branch permissions so we can delete the branch
   clear_branch_permissions
+
+  # Make sure we are on the develop branch so that we can automatically delete the branch
+  # we are finishing
+  git checkout develop
+  git flow $branch_type finish -p -f $release_notes_file $branch_name
+  git push --tags
+
 }
 
 
