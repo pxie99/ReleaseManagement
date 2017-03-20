@@ -191,8 +191,6 @@ while getopts "vt:o:n:f:u:r:" opt; do
       ;;
     n)  branch_name=$OPTARG
       ;;
-    r)  repos+=("$OPTARG")
-      ;;
     u)  organization=$OPTARG
       ;;
     f)  release_notes_file=$OPTARG
@@ -208,6 +206,8 @@ done
 shift $((OPTIND-1))
 
 [ "$1" = "--" ] && shift
+
+repos="$@"
 
 # Redirect output if verbose is specified
 if [[ $verbose -eq 0 ]]; then
