@@ -30,3 +30,14 @@ with your new token.
 
 You can find information on to use the Github REST API [here](https://developer.github.com/v3/)
 
+## Testing
+
+```
+# Create release 2.2.0
+$ ./bin/clemency.sh -o create -u kkirkup -t release -n 2.2.0 ~/repos/release-management-testing
+
+# Finish release 2.2.0
+$ ./bin/clemency.sh -o finish -u kkirkup -t release -n 2.2.0 -f $(pwd)/release_notes.txt ~/repos/release-management-testing
+```
+
+
