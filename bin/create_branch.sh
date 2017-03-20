@@ -32,12 +32,12 @@ function set_branch_permissions() {
   local PERMISSIONS='{ "required_pull_request_reviews": { "include_admins": true }, "required_status_checks": null, "restrictions": null }'
 
   echo "Launch this page to set the full permissions for $REPO:"
-  echo "https://github4-chn.cisco.com/$organization/$REPO/settings/branches/$branch_name"
+  echo "https://github4-chn.cisco.com/$organization/$REPO/settings/branches/$branch_type/$branch_name"
   curl \
     -H "Authorization: token $GITHUB_OAUTH_TOKEN" \
     -H "Accept: application/vnd.github.loki-preview" \
     -XPUT -d $PERMISSIONS \
-    https://github4-chn.cisco.com/api/v3/repos/$oranization/$REPO/branches/$branch_name/protection
+    https://github4-chn.cisco.com/api/v3/repos/$organization/$REPO/branches/$branch_type%2F$branch_name/protection
 }
 
 ######################################################
@@ -52,11 +52,12 @@ function clear_branch_permissions() {
   local PERMISSIONS='{ "protection": { "enabled": false } }'
 
   echo "Clearing branch permissions for $REPO"
+  echo "https://github4-chn.cisco.com/api/v3/repos/$organization/$REPO/branches/$branch_type%2F$branch_name"
   curl \
     -H "Authorization: token $GITHUB_OAUTH_TOKEN" \
     -H "Accept: application/vnd.github.loki-preview" \
     -XPATCH -d $PERMISSIONS \
-    https://github4-chn.cisco.com/api/v3/repos/$organization/$REPO/branches/$branch_name
+    https://github4-chn.cisco.com/api/v3/repos/$organization/$REPO/branches/$branch_type%2F$branch_name
 }
 
 ######################################################
@@ -109,7 +110,7 @@ function foreach_repo() {
 
     cd $T
 
-    for item in ${REPOS[*]}; do
+    for item in ${repos[*]}; do
 
       pushd . > /dev/null
 
@@ -227,10 +228,11 @@ fi
 
 echo "verbose=$verbose, type='$branch_type', name: $branch_name, release_notes: $release_notes_file" >&3
 
+# Debug prints
 for r in ${repos[*]}; do
-  echo $r
+  echo $r >&3
 done
-echo $organization
+echo $organization >&3
 
 # Process each repository
 foreach_repo $operation
