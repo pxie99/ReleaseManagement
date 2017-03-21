@@ -11,8 +11,6 @@ REPOS=(
  "."
 )
 
-ORGANIZATION="Interstellar"
-
 ######################################################
 # Function to set the Github protections for a particular branch
 #
@@ -27,17 +25,17 @@ ORGANIZATION="Interstellar"
 ######################################################
 function set_branch_permissions() {
 
-  local REPO=`basename $(git rev-parse --show-toplevel)`
+  local REPO=`git remote show origin | grep "Fetch" | awk '/Fetch URL:/{ split($3, r, ":"; print r[2]} | sed 's/.git//'`
 
   local PERMISSIONS='{ "required_pull_request_reviews": { "include_admins": true }, "required_status_checks": null, "restrictions": null }'
 
   echo "Launch this page to set the full permissions for $REPO:"
-  echo "https://github4-chn.cisco.com/$organization/$REPO/settings/branches/$branch_type/$branch_name"
+  echo "https://github4-chn.cisco.com/$REPO/settings/branches/$branch_type/$branch_name"
   curl \
     -H "Authorization: token $GITHUB_OAUTH_TOKEN" \
     -H "Accept: application/vnd.github.loki-preview" \
     -XPUT -d "$PERMISSIONS" \
-    https://github4-chn.cisco.com/api/v3/repos/$organization/$REPO/branches/$branch_type%2F$branch_name/protection
+    https://github4-chn.cisco.com/api/v3/repos/$REPO/branches/$branch_type%2F$branch_name/protection
 }
 
 ######################################################
@@ -47,17 +45,17 @@ function set_branch_permissions() {
 ######################################################
 function clear_branch_permissions() {
 
-  local REPO=`basename $(git rev-parse --show-toplevel)`
+  local REPO=`git remote show origin | grep "Fetch" | awk '/Fetch URL:/{ split($3, r, ":"; print r[2]} | sed 's/.git//'`
 
   local PERMISSIONS='{ "protection": { "enabled": false } }'
 
   echo "Clearing branch permissions for $REPO"
-  echo "https://github4-chn.cisco.com/$organization/$REPO/branches/$branch_type/$branch_name"
+  echo "https://github4-chn.cisco.com/$REPO/branches/$branch_type/$branch_name"
   curl \
     -H "Authorization: token $GITHUB_OAUTH_TOKEN" \
     -H "Accept: application/vnd.github.loki-preview" \
     -XPATCH -d "$PERMISSIONS" \
-    https://github4-chn.cisco.com/api/v3/repos/$organization/$REPO/branches/$branch_type%2F$branch_name
+    https://github4-chn.cisco.com/api/v3/repos/$REPO/branches/$branch_type%2F$branch_name
 }
 
 ######################################################
@@ -157,7 +155,7 @@ OPTIND=1         # Reset in case getopts has been used previously in the shell.
 output_file=""
 verbose=0
 
-while getopts "vt:o:n:f:u:r:" opt; do
+while getopts "vt:o:n:f:r:" opt; do
 
   case "$opt" in
     v)  verbose=1
@@ -194,8 +192,6 @@ while getopts "vt:o:n:f:u:r:" opt; do
       ;;
     n)  branch_name=$OPTARG
       ;;
-    u)  organization=$OPTARG
-      ;;
     f)  release_notes_file=$OPTARG
       ;;
     *)
@@ -224,17 +220,12 @@ if [ -z $repos ]; then
   repos=( "${REPOS[@]}" )
 fi
 
-if [ -z $organization ]; then
-  organization=$ORGANIZATION
-fi
-
 echo "verbose=$verbose, type='$branch_type', name: $branch_name, release_notes: $release_notes_file" >&3
 
 # Debug prints
 for r in ${repos[*]}; do
   echo $r >&3
 done
-echo $organization >&3
 
 # Process each repository
 foreach_repo $operation
