@@ -1,7 +1,14 @@
 # ReleaseManagment
 Repository for release management tools and scripts
 
-## Setup Github permssions
+To use the scripts in this repository, you will need to make sure
+that you have sourced the `envsetup.sh` file at the $ROOT of your
+project's build tree. These scripts will reference environment
+variables and functions that are defined there.
+
+## `clemency` branching management
+
+### Setup Github permissions
 
 To be able to communicate to the Github server through their REST API,
 You'll need to create a personal OAuth Token.
@@ -12,8 +19,8 @@ To create the access token:
 1. Click you profile icon in the top right corner and select "Settings"
 1. From the list of settings, select "Personal access tokens"
 1. Click the "Generate new token" button in the right hand corner.
-1. Add the text "Release Managment" for the token description.
-1. Select the top level "repo' permissions under "Select scopes".
+1. Add the text "Release Management" for the token description.
+1. Select the top level "repo" permissions under "Select scopes".
 1. Click "Generate token" on the bottom
 
 The after this is completed, you will be presented with the access token.
@@ -30,7 +37,7 @@ with your new token.
 
 You can find information on to use the Github REST API [here](https://developer.github.com/v3/)
 
-## Testing
+### Testing
 
 ```
 # Create release 2.2.0
