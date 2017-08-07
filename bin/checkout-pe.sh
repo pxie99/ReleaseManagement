@@ -23,9 +23,10 @@ for item in ${REPOS[@]}
 do
 	cd $ws
 	if [ -d $item ]; then
-		echo "run git checkout $git_params in ${itme}"
+		echo "run git checkout $git_params in ${itme} and run git pull"
 		cd $item
 		git checkout $git_params
+		git pull
 	else
 		echo "submodule $item doesn't exist! "
 		exit 1
