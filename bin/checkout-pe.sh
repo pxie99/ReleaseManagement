@@ -23,7 +23,7 @@ for item in ${REPOS[@]}
 do
 	cd $ws
 	if [ -d $item ]; then
-		echo "run git checkout $git_params in ${itme} and run git pull"
+		echo "run git checkout $git_params in ${item} and run git pull"
 		cd $item
 		git checkout $git_params
 		git pull
