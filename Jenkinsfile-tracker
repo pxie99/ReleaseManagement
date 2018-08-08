@@ -1,0 +1,195 @@
+#!/usr/bin/env groovy
+
+@Library('mpe-next-jenkins')_
+
+def utils = new spvss.vmp.mce.Utils()
+
+def git_master_repo = "git@github4-chn.cisco.com:Interstellar/packaging-pe.git"
+def master_repo = "github4-chn.cisco.com/Interstellar/packaging-pe.git"
+
+def tracking_repos = [
+    [ path: 'ReleaseManagement', url: 'git@github4-chn.cisco.com:Interstellar/ReleaseManagement.git' ],
+]
+
+pipeline {
+
+    agent {
+        label 'VMP||VMP-New'
+    }
+
+    options {
+      skipDefaultCheckout()
+      disableConcurrentBuilds()
+      buildDiscarder(logRotator(numToKeepStr: '5'))
+      timestamps()
+    }
+
+    environment {
+        // Proxy settings
+        HTTP_PROXY='http://proxy.esl.cisco.com:80'
+        HTTPS_PROXY='http://proxy.esl.cisco.com:80'
+        http_proxy='http://proxy.esl.cisco.com:80'
+        https_proxy='http://proxy.esl.cisco.com:80'
+        NO_PROXY='localhost,127.0.0.1,.cisco.com'
+
+        PATH = "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/root/bin"
+        TERM='xterm'
+        ROOT="${env.WORKSPACE}"
+    }
+
+    stages {
+
+        stage('Checkout Master') {
+
+            steps {
+
+                script {
+
+                    try {
+
+                        println "Checking out master repo for branch= ${env.BRANCH_NAME}"
+
+                        // Recursive checkout of the source code
+                        def checkoutVars = checkout([$class: 'GitSCM',
+                            branches: [[name: "${env.BRANCH_NAME}"]],
+                            doGenerateSubmoduleConfigurations: false,
+                            extensions: [[$class: 'WipeWorkspace'],
+                                         [$class: 'SubmoduleOption',
+                                          disableSubmodules: false,
+                                          parentCredentials: true,
+                                          recursiveSubmodules: true,
+                                          reference: '',
+                                          trackingSubmodules: false]],
+                            submoduleCfg: [],
+                            userRemoteConfigs: [[credentialsId: 'b38e79d7-0289-4924-876f-a503ba1e436e',
+                                url: "${git_master_repo}"]]
+                        ])
+
+                        currentBuild.result = 'SUCCESS'
+
+                    } catch(Exception e) {
+                        echo "Caught exception: ${e.message}"
+                        currentBuild.result = 'FAILURE'
+                    }
+
+                    if (currentBuild.result != 'SUCCESS') {
+                      error 'Failed to trigger Submodule updates!'
+                    }
+
+                }
+
+            }
+
+        }
+
+        stage('Checkout Submodule') {
+
+            steps {
+
+                script {
+
+                    try {
+
+                        for (repo in tracking_repos) {
+
+                            println "Checking out tracking repo = ${repo['url']}"
+
+                            // Recursive checkout of the source code
+                            checkout([$class: 'GitSCM',
+                                branches: [[name: "${env.BRANCH_NAME}"]],
+                                doGenerateSubmoduleConfigurations: false,
+                                extensions: [[$class: 'CleanBeforeCheckout'],
+                                             [$class: 'SubmoduleOption',
+                                              disableSubmodules: true,
+                                              parentCredentials: true,
+                                              recursiveSubmodules: false,
+                                              reference: '',
+                                              trackingSubmodules: true],
+                                             [$class: 'RelativeTargetDirectory',
+                                              relativeTargetDir: "${repo['path']}"]],
+                                submoduleCfg: [],
+                                userRemoteConfigs: [[credentialsId: 'b38e79d7-0289-4924-876f-a503ba1e436e',
+                                    url: "${repo['url']}"]]
+                            ])
+                        }
+
+                        currentBuild.result = 'SUCCESS'
+
+                    } catch(Exception e) {
+                        echo "Caught exception: ${e.message}"
+                        currentBuild.result = 'FAILURE'
+                    }
+
+                    if (currentBuild.result != 'SUCCESS') {
+                      error 'Failed to trigger Submodule updates!'
+                    }
+
+                }
+
+            }
+
+        }
+
+        stage('Commit submodule updates') {
+
+            steps {
+
+                script {
+
+                    def command = '[[ $(git diff --shortstat 2> /dev/null | tail -n1) == "" ]]'
+
+                    // Check to see if any submodules need to updated
+                    if (sh(returnStatus: true, script: command) == 0) {
+
+                        println "No submodule updates found."
+
+                    } else {
+
+                        utils.commitGithub4Change(
+                            "github4-chn.cisco.com/Interstellar/packaging-pe.git",
+                            env.BRANCH_NAME,
+                            "Jenkins automated submodule update.")
+
+                        println "Updating submodules..."
+                    }
+                }
+            }
+        }
+
+    }
+
+    // Post Build Operations
+    post {
+
+      failure {
+        script {
+
+             emailext body: '$DEFAULT_CONTENT',
+                      recipientProviders: [[$class: 'FirstFailingBuildSuspectsRecipientProvider'],
+                                           [$class: 'CulpritsRecipientProvider']],
+                      subject: '$DEFAULT_SUBJECT',
+                      to: "kkirkup@cisco.com"
+        }
+      }
+
+      unstable {
+        script {
+             emailext body: '$DEFAULT_CONTENT',
+                      recipientProviders: [[$class: 'FirstFailingBuildSuspectsRecipientProvider'],
+                                           [$class: 'CulpritsRecipientProvider']],
+                      subject: '$DEFAULT_SUBJECT',
+                      to: "kkirkup@cisco.com"
+        }
+      }
+
+      success {
+        script {
+             emailext body: '$DEFAULT_CONTENT',
+                      recipientProviders: [[$class: 'FirstFailingBuildSuspectsRecipientProvider'],
+                                           [$class: 'CulpritsRecipientProvider']],
+                      subject: '$DEFAULT_SUBJECT',
+                      to: "kkirkup@cisco.com"
+        }
+      }
+    }
+}
