@@ -1,11 +1,10 @@
 #!/usr/bin/env groovy
 
 @Library('mpe-next-jenkins')_
+@Library('mpe-tracker-jenkins') import spvss.mpe.TrackerUtils
 
 def utils = new spvss.vmp.mce.Utils()
-
-def git_master_repo = "git@github4-chn.cisco.com:Interstellar/packaging-pe.git"
-def master_repo = "github4-chn.cisco.com/Interstellar/packaging-pe.git"
+def tracker_utils = new TrackerUtils()
 
 def tracking_repos = [
     [ path: 'ReleaseManagement', url: 'git@github4-chn.cisco.com:Interstellar/ReleaseManagement.git' ],
@@ -47,23 +46,7 @@ pipeline {
 
                     try {
 
-                        println "Checking out master repo for branch= ${env.BRANCH_NAME}"
-
-                        // Recursive checkout of the source code
-                        def checkoutVars = checkout([$class: 'GitSCM',
-                            branches: [[name: "${env.BRANCH_NAME}"]],
-                            doGenerateSubmoduleConfigurations: false,
-                            extensions: [[$class: 'WipeWorkspace'],
-                                         [$class: 'SubmoduleOption',
-                                          disableSubmodules: false,
-                                          parentCredentials: true,
-                                          recursiveSubmodules: true,
-                                          reference: '',
-                                          trackingSubmodules: false]],
-                            submoduleCfg: [],
-                            userRemoteConfigs: [[credentialsId: 'b38e79d7-0289-4924-876f-a503ba1e436e',
-                                url: "${git_master_repo}"]]
-                        ])
+                        tracker_utils.checkoutMaster(env.BRANCH_NAME)
 
                         currentBuild.result = 'SUCCESS'
 
@@ -90,28 +73,9 @@ pipeline {
 
                     try {
 
-                        for (repo in tracking_repos) {
-
-                            println "Checking out tracking repo = ${repo['url']}"
-
-                            // Recursive checkout of the source code
-                            checkout([$class: 'GitSCM',
-                                branches: [[name: "${env.BRANCH_NAME}"]],
-                                doGenerateSubmoduleConfigurations: false,
-                                extensions: [[$class: 'CleanBeforeCheckout'],
-                                             [$class: 'SubmoduleOption',
-                                              disableSubmodules: true,
-                                              parentCredentials: true,
-                                              recursiveSubmodules: false,
-                                              reference: '',
-                                              trackingSubmodules: true],
-                                             [$class: 'RelativeTargetDirectory',
-                                              relativeTargetDir: "${repo['path']}"]],
-                                submoduleCfg: [],
-                                userRemoteConfigs: [[credentialsId: 'b38e79d7-0289-4924-876f-a503ba1e436e',
-                                    url: "${repo['url']}"]]
-                            ])
-                        }
+                        tracker_utils.checkoutSubmodules(
+                            tracking_repos,
+                            env.BRANCH_NAME)
 
                         currentBuild.result = 'SUCCESS'
 
@@ -136,22 +100,9 @@ pipeline {
 
                 script {
 
-                    def command = '[[ $(git diff --shortstat 2> /dev/null | tail -n1) == "" ]]'
-
-                    // Check to see if any submodules need to updated
-                    if (sh(returnStatus: true, script: command) == 0) {
-
-                        println "No submodule updates found."
-
-                    } else {
-
-                        utils.commitGithub4Change(
-                            "github4-chn.cisco.com/Interstellar/packaging-pe.git",
-                            env.BRANCH_NAME,
-                            "Jenkins automated submodule update.")
-
-                        println "Updating submodules..."
-                    }
+                    tracker_utils.commitSubmoduleUpdates(
+                        env.BRANCH_NAME,
+                        "Jenkins automated submodule update.")
                 }
             }
         }
@@ -163,32 +114,19 @@ pipeline {
 
       failure {
         script {
-
-             emailext body: '$DEFAULT_CONTENT',
-                      recipientProviders: [[$class: 'FirstFailingBuildSuspectsRecipientProvider'],
-                                           [$class: 'CulpritsRecipientProvider']],
-                      subject: '$DEFAULT_SUBJECT',
-                      to: "kkirkup@cisco.com"
+          utils.sendFailureEmail(currentBuild)
         }
       }
 
       unstable {
         script {
-             emailext body: '$DEFAULT_CONTENT',
-                      recipientProviders: [[$class: 'FirstFailingBuildSuspectsRecipientProvider'],
-                                           [$class: 'CulpritsRecipientProvider']],
-                      subject: '$DEFAULT_SUBJECT',
-                      to: "kkirkup@cisco.com"
+          utils.sendUnstableEmail(currentBuild)
         }
       }
 
       success {
         script {
-             emailext body: '$DEFAULT_CONTENT',
-                      recipientProviders: [[$class: 'FirstFailingBuildSuspectsRecipientProvider'],
-                                           [$class: 'CulpritsRecipientProvider']],
-                      subject: '$DEFAULT_SUBJECT',
-                      to: "kkirkup@cisco.com"
+          utils.sendSuccessEmail(currentBuild)
         }
       }
     }
