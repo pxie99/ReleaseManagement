@@ -6,105 +6,25 @@
 def utils = new spvss.vmp.mce.Utils()
 def tracker_utils = new TrackerUtils()
 
-def tracking_repos = [
-    [ path: 'ReleaseManagement', url: 'git@github4-chn.cisco.com:Interstellar/ReleaseManagement.git' ],
-]
-
 pipeline {
 
-    agent {
-        label 'VMP||VMP-New'
-    }
+    agent any
 
     options {
       skipDefaultCheckout()
       disableConcurrentBuilds()
-      buildDiscarder(logRotator(numToKeepStr: '5'))
+      buildDiscarder(logRotator(numToKeepStr: '2'))
       timestamps()
-    }
-
-    environment {
-        // Proxy settings
-        HTTP_PROXY='http://proxy.esl.cisco.com:80'
-        HTTPS_PROXY='http://proxy.esl.cisco.com:80'
-        http_proxy='http://proxy.esl.cisco.com:80'
-        https_proxy='http://proxy.esl.cisco.com:80'
-        NO_PROXY='localhost,127.0.0.1,.cisco.com'
-
-        PATH = "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/root/bin"
-        TERM='xterm'
-        ROOT="${env.WORKSPACE}"
     }
 
     stages {
 
-        stage('Checkout Master') {
+        stage('Trigger Update of Master Repo') {
 
             steps {
-
-                script {
-
-                    try {
-
-                        tracker_utils.checkoutMaster(env.BRANCH_NAME)
-
-                        currentBuild.result = 'SUCCESS'
-
-                    } catch(Exception e) {
-                        echo "Caught exception: ${e.message}"
-                        currentBuild.result = 'FAILURE'
-                    }
-
-                    if (currentBuild.result != 'SUCCESS') {
-                      error 'Failed to trigger Submodule updates!'
-                    }
-
-                }
-
+                tracker_utils.triggerMasterUpdateBuild(env.BRANCH_NAME)
             }
 
-        }
-
-        stage('Checkout Submodule') {
-
-            steps {
-
-                script {
-
-                    try {
-
-                        tracker_utils.checkoutSubmodules(
-                            tracking_repos,
-                            env.BRANCH_NAME)
-
-                        currentBuild.result = 'SUCCESS'
-
-                    } catch(Exception e) {
-                        echo "Caught exception: ${e.message}"
-                        currentBuild.result = 'FAILURE'
-                    }
-
-                    if (currentBuild.result != 'SUCCESS') {
-                      error 'Failed to trigger Submodule updates!'
-                    }
-
-                }
-
-            }
-
-        }
-
-        stage('Commit submodule updates') {
-
-            steps {
-
-                script {
-
-                    tracker_utils.commitSubmoduleUpdates(
-                        env.BRANCH_NAME,
-                        "Jenkins automated submodule update.")
-                }
-            }
         }
 
     }
