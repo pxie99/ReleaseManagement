@@ -22,7 +22,9 @@ pipeline {
         stage('Trigger Update of Master Repo') {
 
             steps {
-                tracker_utils.triggerMasterUpdateBuild(env.BRANCH_NAME)
+                script {
+                    tracker_utils.triggerMasterUpdateBuild(env.BRANCH_NAME)
+                }
             }
 
         }
@@ -34,19 +36,19 @@ pipeline {
 
       failure {
         script {
-          utils.sendFailureEmail(currentBuild)
+          tracker_utils.sendFailureEmail(currentBuild)
         }
       }
 
       unstable {
         script {
-          utils.sendUnstableEmail(currentBuild)
+          tracker_utils.sendUnstableEmail(currentBuild)
         }
       }
 
       success {
         script {
-          utils.sendSuccessEmail(currentBuild)
+          tracker_utils.sendSuccessEmail(currentBuild)
         }
       }
     }
