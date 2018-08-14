@@ -1,0 +1,55 @@
+#!/usr/bin/env groovy
+
+@Library('mpe-next-jenkins')_
+@Library('mpe-tracker-jenkins') import spvss.mpe.TrackerUtils
+
+def utils = new spvss.vmp.mce.Utils()
+def tracker_utils = new TrackerUtils()
+
+pipeline {
+
+    agent any
+
+    options {
+      skipDefaultCheckout()
+      disableConcurrentBuilds()
+      buildDiscarder(logRotator(numToKeepStr: '2'))
+      timestamps()
+    }
+
+    stages {
+
+        stage('Trigger Update of Master Repo') {
+
+            steps {
+                script {
+                    tracker_utils.triggerMasterUpdateBuild(env.BRANCH_NAME)
+                }
+            }
+
+        }
+
+    }
+
+    // Post Build Operations
+    post {
+
+      failure {
+        script {
+          tracker_utils.sendFailureEmail(currentBuild)
+        }
+      }
+
+      unstable {
+        script {
+          tracker_utils.sendUnstableEmail(currentBuild)
+        }
+      }
+
+      success {
+        script {
+          tracker_utils.sendSuccessEmail(currentBuild)
+        }
+      }
+    }
+}
