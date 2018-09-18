@@ -6,8 +6,8 @@
 def utils = new spvss.vmp.mce.Utils()
 def tracker_utils = new TrackerUtils()
 
-def v2pc_jobs =[:]
-def playout_jobs =[:]
+def v2pc_jobs = [:]
+def playout_jobs = [:]
 
 pipeline {
 
@@ -29,6 +29,8 @@ pipeline {
 
             steps {
                 script {
+
+                    println "Branch Name: ${params.BRANCH_NAME}"
 
                     // Check the branch name
                     switch(params.BRANCH_NAME) {
