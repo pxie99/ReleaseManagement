@@ -80,14 +80,14 @@ pipeline {
                         branches[k] = {
 
                             println "Building V2PC ${v} ...."
-                            //triggerRemoteJob(
-                            //    job: v,
-                            //    maxConn: 1,
-                            //    remoteJenkinsName: 'sjc-jenkins-master',
-                            //    shouldNotFailBuild: true,
-                            //    useCrumbCache: true,
-                            //    useJobInfoCache: true,
-                            //    )
+                            triggerRemoteJob(
+                                job: v,
+                                maxConn: 1,
+                                remoteJenkinsName: 'sjc-jenkins-master',
+                                shouldNotFailBuild: true,
+                                useCrumbCache: true,
+                                useJobInfoCache: true,
+                                )
                         }
                     }
 
@@ -96,7 +96,7 @@ pipeline {
                         branches[k] = {
 
                             println "Building Playout ${v} ...."
-                            // build job: v, wait: false
+                            build job: v, wait: false
                         }
 
                     }
