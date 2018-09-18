@@ -37,7 +37,7 @@ pipeline {
 
                       case ~/^hotfix\/2.12.2/:
 
-                          v2pc_jobs["V2PC 2.12.2"] = "VMP-2.12.2-Release"
+                          v2pc_jobs["V2PC 2.12.2"] = "https://engci-private-sjc.cisco.com/jenkins/v2pc/job/VMP-2.12.2-Release/"
                           playout_jobs["Playout Packager(master)"] = "MPE.next.pipeline.packager/master"
                           break;
 
