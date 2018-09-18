@@ -37,28 +37,30 @@ pipeline {
 
                       case ~/^hotfix\/2.12.2/:
 
-                          v2pc_jobs["VMP-2.12.2-Release"]
-                          playout_jobs["MPE.next.pipeline.packager/master"]
+                          v2pc_jobs["V2PC 2.12.2"] = "VMP-2.12.2-Release"
+                          playout_jobs["Playout Packager(master)"] = "MPE.next.pipeline.packager/master"
                           break;
 
                       case ~/^hotfix\/2.15.3/:
 
-                          v2pc_jobs["VMP-2.15.3-Release"]
-                          playout_jobs[""]
+                          v2pc_jobs["V2PC 2.15.3"] = "VMP-2.15.3-Release"
                           break;
 
                       case ~/^release\/2.16.0/:
 
-                          v2pc_jobs["VMP-2.16.0-Release"]
+                          v2pc_jobs["V2PC 2.16.0"] = "VMP-2.16.0-Release"
                           //playout_jobs["MPE.next.pipeline.packager/release/1.0"]
                           break;
 
                       case ~/^develop$/:
+
+                          println "Currently no downstream Jobs for this branch."
                           //playout_jobs["MPE.next.pipeline.packager/master"]
                           break;
 
                       default:
-                        // Don't trigger anything
+
+                        println "No downstream Jobs for this branch."
                         break;
                     }
                 }
