@@ -66,38 +66,41 @@ pipeline {
 
         stage('Trigger Builds') {
 
-            def branches = [:]
+            steps {
+                script {
 
-            v2pc_jobs.each{ k, v ->
+                    def branches = [:]
 
-                branches[k] = {
+                    v2pc_jobs.each{ k, v ->
 
-                    println "Building V2PC ${v} ...."
-                    //triggerRemoteJob(
-                    //    job: v,
-                    //    maxConn: 1,
-                    //    remoteJenkinsName: 'sjc-jenkins-master',
-                    //    shouldNotFailBuild: true,
-                    //    useCrumbCache: true,
-                    //    useJobInfoCache: true,
-                    //    )
+                        branches[k] = {
+
+                            println "Building V2PC ${v} ...."
+                            //triggerRemoteJob(
+                            //    job: v,
+                            //    maxConn: 1,
+                            //    remoteJenkinsName: 'sjc-jenkins-master',
+                            //    shouldNotFailBuild: true,
+                            //    useCrumbCache: true,
+                            //    useJobInfoCache: true,
+                            //    )
+                        }
+                    }
+
+                    playout_jobs.each{ k, v ->
+
+                        branches[k] = {
+
+                            println "Building Playout ${v} ...."
+                            // build job: v, wait: false
+                        }
+
+                    }
+
+                    // Now we trigger all branches
+                    parallel branches
                 }
             }
-
-            playout_jobs.each{ k, v ->
-
-                branches[k] = {
-
-                    println "Building Playout ${v} ...."
-                    // build job: v, wait: false
-                }
-
-            }
-
-
-            // Now we trigger all branches
-            parallel branches
-
         }
     }
 
