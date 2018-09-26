@@ -1,0 +1,137 @@
+#!/usr/bin/env groovy
+
+@Library('mpe-next-jenkins')_
+@Library('mpe-tracker-jenkins') import spvss.mpe.TrackerUtils
+
+def utils = new spvss.vmp.mce.Utils()
+def tracker_utils = new TrackerUtils()
+
+def v2pc_jobs = [:]
+def playout_jobs = [:]
+
+pipeline {
+
+    agent any
+
+    options {
+      skipDefaultCheckout()
+      buildDiscarder(logRotator(numToKeepStr: '5'))
+      timestamps()
+    }
+
+    parameters {
+      string(name: 'BRANCH_NAME', defaultValue: '')
+    }
+
+    stages {
+
+        stage('Identify Jenkins builds to trigger.') {
+
+            steps {
+                script {
+
+                    println "Branch Name: ${params.BRANCH_NAME}"
+
+                    // Check the branch name
+                    switch(params.BRANCH_NAME) {
+
+                      case ~/^hotfix\/2.12.2/:
+
+                          v2pc_jobs["V2PC 2.12.2"] = "https://engci-private-sjc.cisco.com/jenkins/v2pc/job/VMP-2.12.2-Release/"
+                          playout_jobs["Playout Packager(master)"] = "MPE.next.pipeline.packager/master"
+                          break;
+
+                      case ~/^hotfix\/2.15.3/:
+
+                          v2pc_jobs["V2PC 2.15.3"] = "VMP-2.15.3-Release"
+                          break;
+
+                      case ~/^release\/2.16.0/:
+
+                          v2pc_jobs["V2PC 2.16.0"] = "VMP-2.16.0-Release"
+                          //playout_jobs["MPE.next.pipeline.packager/release/1.0"]
+                          break;
+                      case ~/^release\/18.3.0/:
+
+                          v2pc_jobs["V2PC 2.16.0"] = "VMP-2.16.0-Release"
+                          //playout_jobs["MPE.next.pipeline.packager/release/1.0"]
+                          break;
+
+                      case ~/^develop$/:
+
+                          println "Currently no downstream Jobs for this branch."
+                          //playout_jobs["MPE.next.pipeline.packager/master"]
+                          break;
+
+                      default:
+
+                        println "No downstream Jobs for this branch."
+                        break;
+                    }
+                }
+            }
+
+        }
+
+        stage('Trigger Builds') {
+
+            steps {
+                script {
+
+                    def branches = [:]
+
+                    v2pc_jobs.each{ k, v ->
+
+                        branches[k] = {
+
+                            println "Building V2PC ${v} ...."
+                            triggerRemoteJob(
+                                job: v,
+                                maxConn: 1,
+                                remoteJenkinsName: 'sjc-jenkins-master',
+                                shouldNotFailBuild: true,
+                                useCrumbCache: true,
+                                useJobInfoCache: true,
+                                )
+                        }
+                    }
+
+                    playout_jobs.each{ k, v ->
+
+                        branches[k] = {
+
+                            println "Building Playout ${v} ...."
+                            build job: v, wait: false
+                        }
+
+                    }
+
+                    // Now we trigger all branches
+                    parallel branches
+                }
+            }
+        }
+    }
+
+    // Post Build Operations
+    post {
+
+      failure {
+        script {
+          utils.sendFailureEmail(currentBuild)
+        }
+      }
+
+      unstable {
+        script {
+          utils.sendUnstableEmail(currentBuild)
+        }
+      }
+
+      success {
+        script {
+          utils.sendSuccessEmail(currentBuild)
+        }
+      }
+    }
+}
