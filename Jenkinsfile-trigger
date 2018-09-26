@@ -51,6 +51,11 @@ pipeline {
                           v2pc_jobs["V2PC 2.16.0"] = "VMP-2.16.0-Release"
                           //playout_jobs["MPE.next.pipeline.packager/release/1.0"]
                           break;
+                      case ~/^release\/18.3.6/:
+
+                          v2pc_jobs["V2PC 2.16.0"] = "VMP-2.16.0-Release"
+                          //playout_jobs["MPE.next.pipeline.packager/release/1.0"]
+                          break;
 
                       case ~/^develop$/:
 
