@@ -46,6 +46,11 @@ pipeline {
                           v2pc_jobs["V2PC 2.15.3"] = "VMP-2.15.3-Release"
                           break;
 
+                      case ~/^hotfix\/2.15.4/:
+
+                          v2pc_jobs["V2PC 2.15.4"] = "VMP-2.15.4-Release"
+                          break;
+
                       case ~/^release\/2.16.0/:
 
                           v2pc_jobs["V2PC 2.16.0"] = "VMP-2.16.0-Release"
