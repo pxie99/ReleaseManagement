@@ -38,12 +38,6 @@ pipeline {
                       case ~/^hotfix\/2.12.2/:
 
                           v2pc_jobs["V2PC 2.12.2"] = "https://engci-private-sjc.cisco.com/jenkins/v2pc/job/VMP-2.12.2-Release/"
-                          playout_jobs["Playout Packager(master)"] = "MPE.next.pipeline.packager/master"
-                          break;
-
-                      case ~/^hotfix\/2.15.3/:
-
-                          v2pc_jobs["V2PC 2.15.3"] = "VMP-2.15.3-Release"
                           break;
 
                       case ~/^hotfix\/2.15.4/:
@@ -51,14 +45,10 @@ pipeline {
                           v2pc_jobs["V2PC 2.15.4"] = "VMP-2.15.4-Release"
                           break;
 
-                      case ~/^release\/2.16.0/:
-
-                          v2pc_jobs["V2PC 2.16.0"] = "VMP-2.16.0-Release"
-                          //playout_jobs["MPE.next.pipeline.packager/release/1.0"]
-                          break;
                       case ~/^release\/18.3.0/:
 
                           v2pc_jobs["V2PC 2.16.0"] = "VMP-2.16.0-Release"
+                          playout_jobs["Playout Packager(master)"] = "MPE.next.pipeline.packager/master"
                           //playout_jobs["MPE.next.pipeline.packager/release/1.0"]
                           break;
 
