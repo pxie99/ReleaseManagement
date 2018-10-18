@@ -1,9 +1,7 @@
 #!/usr/bin/env groovy
 
-@Library('mpe-next-jenkins')_
-@Library('mpe-tracker-jenkins') import spvss.mpe.TrackerUtils
+@Library('mpe-tracker-jenkins')_
 
-def utils = new spvss.vmp.mce.Utils()
 def tracker_utils = new TrackerUtils()
 
 pipeline {
