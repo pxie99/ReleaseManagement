@@ -2,7 +2,7 @@
 
 @Library('mpe-tracker-jenkins')_
 
-def tracker_utils = new TrackerUtils()
+def tracker_utils = new spvss.mpe.TrackerUtils()
 
 pipeline {
 
