@@ -94,6 +94,7 @@ pipeline {
                                 shouldNotFailBuild: true,
                                 useCrumbCache: true,
                                 useJobInfoCache: true,
+                                parameters: "mpe_branch_name=${params.BRANCH_NAME}"
                                 )
                         }
                     }
