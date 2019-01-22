@@ -61,7 +61,7 @@ pipeline {
 
                       case ~/^develop$/:
 
-                          playout_jobs["MPE.next.pipeline.packager/develop"]
+                          playout_jobs["Playout Packager(develop)"] = "MPE.next.pipeline.packager/develop"
                           break;
 
                       default:
