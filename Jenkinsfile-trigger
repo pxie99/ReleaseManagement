@@ -69,10 +69,15 @@ pipeline {
                           playout_jobs["Playout KMSProxy (master)"] = "MPE.next.pipeline.kmsproxy/master"
                           break;
 
+                      case ~/(release|hotfix)\/(\d+\.)?(\d+\.)?(\*|\d+)/:
+                          playout_jobs["Playout Packager(master)"] = "MPE.next.pipeline.packager/master"
+                          playout_jobs["Playout KMSProxy (master)"] = "MPE.next.pipeline.kmsproxy/master"
+                          break;
 
                       case ~/^develop$/:
 
                           playout_jobs["Playout Packager(develop)"] = "MPE.next.pipeline.packager/develop"
+                          playout_jobs["Playout KMSProxy (master)"] = "MPE.next.pipeline.kmsproxy/master"
                           break;
 
                       default:
